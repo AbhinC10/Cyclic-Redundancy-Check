@@ -78,22 +78,6 @@ module tx_packet_controller (
       ST_WAIT_DATA: begin
 
         if (!tx_busy_i)
-          state_d = ST_SEND_CRC_LOW;
-
-      end
-
-      ST_SEND_CRC_LOW: begin
-
-        tx_data_o  = crc_i[7:0];
-        tx_valid_o = 1'b1;
-
-        state_d    = ST_WAIT_CRC_LOW;
-
-      end
-
-      ST_WAIT_CRC_LOW: begin
-
-        if (!tx_busy_i)
           state_d = ST_SEND_CRC_HIGH;
 
       end
@@ -108,6 +92,22 @@ module tx_packet_controller (
       end
 
       ST_WAIT_CRC_HIGH: begin
+
+        if (!tx_busy_i)
+          state_d = ST_SEND_CRC_LOW;
+
+      end
+
+      ST_SEND_CRC_LOW: begin
+
+        tx_data_o  = crc_i[7:0];
+        tx_valid_o = 1'b1;
+
+        state_d    = ST_WAIT_CRC_LOW;
+
+      end
+
+      ST_WAIT_CRC_LOW: begin
 
         if (!tx_busy_i)
           state_d = ST_DONE;
