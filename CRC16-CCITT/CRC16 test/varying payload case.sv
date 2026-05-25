@@ -23,3 +23,26 @@ always_comb begin
   endcase
 
 end
+
+
+
+
+//or
+
+
+
+case(data_bits_i)
+
+  2'b00:
+    crc_data = {3'b000, payload[4:0]};
+
+  2'b01:
+    crc_data = {2'b00, payload[5:0]};
+
+  2'b10:
+    crc_data = {1'b0, payload[6:0]};
+
+  2'b11:
+    crc_data = payload[7:0];
+
+endcase
