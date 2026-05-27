@@ -24,10 +24,10 @@ module tx_packet_controller (
     ST_IDLE,
     ST_LOAD_DATA,
     ST_WAIT_DATA,
-    ST_SEND_CRC_LOW,
-    ST_WAIT_CRC_LOW,
     ST_SEND_CRC_HIGH,
     ST_WAIT_CRC_HIGH,
+    ST_SEND_CRC_LOW,
+    ST_WAIT_CRC_LOW,
     ST_DONE
   } state_t;
 
