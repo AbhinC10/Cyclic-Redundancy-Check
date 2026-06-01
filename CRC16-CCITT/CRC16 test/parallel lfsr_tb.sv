@@ -1,73 +1,110 @@
+`timescale 1ns/1ps
+
 module tb_crc16_ccitt;
 
-  logic        clk_i;
-  logic        rst_n_i;
-  logic        crc_en_i;
+  logic        clk;
+  logic        rst_n;
+  logic        crc_en;
+  logic        crc_reset;
+  logic [7:0]  data;
+  logic [15:0] crc;
 
-  logic [7:0]  data_i;
-  logic [15:0] crc_o;
-
+ 
   crc16_ccitt dut (
-    .clk_i(clk_i),
-    .rst_n_i(rst_n_i),
-    .crc_en_i(crc_en_i),
-    .data_i(data_i),
-    .crc_o(crc_o)
+    .clk_i       (clk),
+    .rst_n_i     (rst_n),
+    .crc_reset_i (crc_reset),
+    .crc_en_i    (crc_en),
+    .data_i      (data),
+    .crc_o       (crc)
   );
 
-  initial clk_i = 0;
-  always #5 clk_i = ~clk_i;
+  //clock
+  
+  initial begin
+    clk = 0;
+    forever #5 clk = ~clk;
+  end
 
+ //task
+  
   task send_byte(input [7:0] data_byte);
+  begin
+    @(posedge clk);
+    data   = data_byte;
+    crc_en = 1'b1;
 
-    begin
+    @(posedge clk);
+    crc_en = 1'b0;
 
-      @(posedge clk_i);
-
-      crc_en_i = 1;
-      data_i   = data_byte;
-
-      @(posedge clk_i);
-
-      crc_en_i = 0;
-
-      $display(
-        "T=%0t | DATA=%h | CRC=%h",
-        $time,
-        data_byte,
-        crc_o
-      );
-
-    end
-
+    $display("Data = %02h  CRC = %04h",
+              data_byte, crc);
+  end
   endtask
 
+  //test
+  
   initial begin
 
-    rst_n_i  = 0;
-    crc_en_i = 0;
-    data_i   = 8'h00;
+    rst_n     = 0;
+    crc_en    = 0;
+    crc_reset = 0;
+    data      = 0;
 
-    #20;
-    rst_n_i = 1;
+    // Global reset
+    repeat(2) @(posedge clk);
+    rst_n = 1;
+
+    // CRC reset to FFFF
+    @(posedge clk);
+    crc_reset = 1;
+
+    @(posedge clk);
+    crc_reset = 0;
+
+    $display("\nCRC test for \"ASCII 123456789\"\n");
 
     // ASCII "123456789"
-    send_byte("1");
-    send_byte("2");
-    send_byte("3");
-    send_byte("4");
-    send_byte("5");
-    send_byte("6");
-    send_byte("7");
-    send_byte("8");
-    send_byte("9");
+    send_byte(8'h31);
+    send_byte(8'h32);
+    send_byte(8'h33);
+    send_byte(8'h34);
+    send_byte(8'h35);
+    send_byte(8'h36);
+    send_byte(8'h37);
+    send_byte(8'h38);
+    send_byte(8'h39);
+   
+    $display("\nCRC = %04h", crc);
+    $display("Expected  = 29b1");
+    
+    @(posedge clk);
+    crc_reset = 1;
+
+    @(posedge clk);
+    crc_reset = 0;
+    
+    send_byte(8'h31);
+    send_byte(8'h32);
+    send_byte(8'h33);
+    send_byte(8'h34);
+    send_byte(8'h35);
+    send_byte(8'h36);
+    send_byte(8'h37);
+    send_byte(8'h38);
+    send_byte(8'h39);
+    send_byte(8'h29);
+    send_byte(8'hb1);
+    
+    @(posedge clk);
+
+    
+    $display("CRC = %04h", crc);
+    $display("Expected  = 0000");
+    
 
     #20;
-
-    $display("FINAL CRC = %h", crc_o);
-    $display("EXPECTED  = 29B1");
-
-    #20 $finish;
+    $finish;
 
   end
 
