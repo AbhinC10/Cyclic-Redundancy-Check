@@ -2,12 +2,11 @@ module crc16_ccitt (
 
   input  logic        clk_i,
   input  logic        rst_n_i,
+  input  logic        crc_reset_i,
   input  logic        crc_en_i,
   input  logic [7:0]  data_i,
 
-  output logic [15:0] crc_o
-
-);
+  output logic [15:0] crc_o);
 
   logic [15:0] crc_reg_q;
   logic [15:0] crc_next;
@@ -93,6 +92,9 @@ module crc16_ccitt (
   always_ff @(posedge clk_i or negedge rst_n_i) begin
 
     if (!rst_n_i)
+      crc_reg_q <= 16'hFFFF;
+    
+    else if (crc_reset_i)
       crc_reg_q <= 16'hFFFF;
 
     else if (crc_en_i)
